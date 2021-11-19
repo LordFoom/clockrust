@@ -1,9 +1,11 @@
+use std::error::Error;
 use std::str;
 use std::thread;
 use std::net::UdpSocket;
 use color_eyre::Report;
 use tracing::info;
 use tracing_subscriber::EnvFilter;
+use clap::{Arg, App, ArgMatches};
 
 fn setup()->Result<(), Report>{
     if std::env::var("RUST_LIB_BACKTRACE").is_err(){
@@ -20,6 +22,19 @@ fn setup()->Result<(), Report>{
         .init();
     Ok(())
 }
+
+///Get our cli arguments and return them in a nice data structure
+fn parse_args()->ArgMatches{
+    App::new("clockrust")
+        .version("0.1")
+        .author("foom")
+        .about("Time tracking server and app")
+        .arg("-v, --verbose 'Log much information' ")
+        .arg("-p, --port 'Port number'")
+        .get_matches()
+}
+
+
 fn main()->Result<(), Report> {
     setup()?;
     //need to put this in its own file and then have a parser maybe
