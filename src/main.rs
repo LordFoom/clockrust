@@ -1,5 +1,6 @@
 mod server;
 mod config;
+mod command_runner;
 
 
 use std::error::Error;
@@ -25,7 +26,7 @@ fn main()->Result<(), Report> {
     config::setup(verbose)?;
     let port = u16::from_str( args.value_of("port")
         .unwrap_or("4420"))
-        .unwrap_or(4420);
+        .unwrap();//want it to complain for bad u16 values
 
     let connection_string = args.value_of("file").unwrap_or("~/.clockrust.db");
     //need to put this in its own file and then have a parser maybe
