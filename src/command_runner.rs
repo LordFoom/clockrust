@@ -41,3 +41,17 @@ impl CommandRunner{
         }
     }
 }
+
+#[cfg(test)]
+mod tests{
+   use super::*;
+
+    ///we try to do the run a command that doesn't exist
+    #[test]
+    fn test_bad_command(){
+        let cmd_runner = CommandRunner::new("./test.db".to_string());
+        let result = cmd_runner.run_command("badcommand");
+        assert_eq!(result.unwrap_err(),"FAIL, supported commands: clock-in, clock-out".to_string());
+    }
+
+}
