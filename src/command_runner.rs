@@ -44,14 +44,16 @@ impl CommandRunner{
 
 #[cfg(test)]
 mod tests{
-   use super::*;
+    use color_eyre::Report;
+    use super::*;
 
     ///we try to do the run a command that doesn't exist
     #[test]
     fn test_bad_command(){
         let cmd_runner = CommandRunner::new("./test.db".to_string());
         let result = cmd_runner.run_command("badcommand");
-        assert_eq!(result.unwrap_err(),"FAIL, supported commands: clock-in, clock-out".to_string());
+        let report = result.unwrap_err();
+        assert_eq!(report.to_string(), "FAIL, supported commands: clock-in, clock-out".to_string());
     }
 
 }
