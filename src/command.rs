@@ -1,16 +1,17 @@
 use color_eyre::{eyre::eyre, Report, Result};
 use crate::db::{ClockRust, ClockRuster};
+use std::fmt::{Display, Formatter};
 
 pub trait Command{
     // fn new(connection_str: &str)->Self;
     fn run_command(&self)->Result<(), Report>;
 }
 pub struct ClockIn<'a>{
-    activity: &'a str
+    task: &'a str
 }
 
 pub struct ClockOut<'a>{
-    activity: &'a str
+    task: &'a str
 }
 
 impl<'a> Command for ClockIn<'a>{
@@ -22,8 +23,15 @@ impl<'a> Command for ClockIn<'a>{
 impl<'a> ClockIn<'a>{
     fn new(activity: &str) ->ClockIn{
         ClockIn{
-            activity
+            task: activity
         }
+    }
+}
+
+impl Display for ClockIn{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result{
+        write!(f, "clock-in {}", task)
+
     }
 }
 
@@ -37,8 +45,14 @@ impl<'a> Command for ClockOut<'a>{
 impl<'a> ClockOut<'a>{
     fn new(activity: &str)->ClockOut{
         ClockOut{
-            activity
+            task: activity
         }
+    }
+}
+
+impl Display for ClockOut{
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "clock-out {}", task)
     }
 }
 // impl CommandConstructor {
@@ -86,6 +100,11 @@ mod tests{
         let result = create_command("badcommand");
         let report = result.err().unwrap();
         assert_eq!(report.to_string(), "FAIL, supported commands: clock-in, clock-out".to_string());
+    }
+
+    #[test]
+    fn test_clock_in(){
+
     }
 
 }
