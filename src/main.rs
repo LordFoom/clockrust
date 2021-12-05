@@ -1,6 +1,7 @@
 mod server;
 mod config;
-mod command_runner;
+mod command;
+mod db;
 
 
 use std::error::Error;

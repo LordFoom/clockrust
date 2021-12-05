@@ -1,34 +1,66 @@
-use color_eyre::{ eyre::eyre,Result };
+use color_eyre::{eyre::eyre, Report, Result};
+use crate::db::{ClockRust, ClockRuster};
 
-pub struct CommandRunner{
-    conn_string: String,
+pub trait Command{
+    // fn new(connection_str: &str)->Self;
+    fn run_command(&self)->Result<(), Report>;
+}
+pub struct ClockIn<'a>{
+    activity: &'a str
 }
 
-impl CommandRunner{
-    pub fn new(conn_string:String)->CommandRunner{
-        CommandRunner{
-            conn_string
+pub struct ClockOut<'a>{
+    activity: &'a str
+}
+
+impl<'a> Command for ClockIn<'a>{
+    fn run_command(&self) -> Result<(), Report> {
+        Ok(())
+    }
+}
+
+impl<'a> ClockIn<'a>{
+    fn new(activity: &str) ->ClockIn{
+        ClockIn{
+            activity
         }
     }
+}
 
-    pub fn run_command(self, check_str: &str)->Result<String>{
+impl<'a> Command for ClockOut<'a>{
+
+    fn run_command(&self) -> Result<(), Report> {
+        Ok(())
+    }
+}
+
+impl<'a> ClockOut<'a>{
+    fn new(activity: &str)->ClockOut{
+        ClockOut{
+            activity
+        }
+    }
+}
+// impl CommandConstructor {
+
+    pub fn create_command(check_str: &str) ->Result<Box<dyn Command + '_>, Report>{
+
         //is it one of our commands, if so return a positive result
         return if check_str.starts_with("clock-in") {
             //break command into at least 2, possibly 3 parts
             let cic: Vec<&str> = check_str.split(' ').collect();
-            if cic.len() < 2 || cic.len() > 3 {
+            if cic.len() < 2 || cic.len() > 2 {
                 return Err(eyre!("FAIL, USAGE: clock-in HASH optional_notes"))
             }
             //hash[0] will be  "clock-in"
-            let hash = cic[1];
+            let clock_string = cic[1];
             let notes = if cic.len() == 3 {
                 cic[2]
             } else {
                 ""
             };
-            //insert into db
-
-            Ok("Success clock-in TODO PUTIN HASH".to_string())
+            let ci = Box::new(ClockIn::new(clock_string));
+            Ok(ci)
         } else if check_str.starts_with("clock-out") {
             //insert into db
             let cic: Vec<&str> = check_str.split(' ').collect();
@@ -40,7 +72,7 @@ impl CommandRunner{
             Err(eyre!("FAIL, supported commands: clock-in, clock-out"))
         }
     }
-}
+// }
 
 #[cfg(test)]
 mod tests{
@@ -50,9 +82,9 @@ mod tests{
     ///we try to do the run a command that doesn't exist
     #[test]
     fn test_bad_command(){
-        let cmd_runner = CommandRunner::new("./test.db".to_string());
-        let result = cmd_runner.run_command("badcommand");
-        let report = result.unwrap_err();
+        // let cmd_runner = CommandConstructor::new("./test.db".to_string());
+        let result = create_command("badcommand");
+        let report = result.err().unwrap();
         assert_eq!(report.to_string(), "FAIL, supported commands: clock-in, clock-out".to_string());
     }
 

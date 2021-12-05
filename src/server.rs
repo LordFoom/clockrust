@@ -2,7 +2,9 @@ use std::net::UdpSocket;
 use std::{thread,str};
 use color_eyre::{eyre::eyre,Report, Result};
 use tracing::{ info, error };
-use crate::command_runner::CommandRunner;
+use crate::command::{create_command, Command};
+
+use crate::db::ClockRust;
 
 
 pub struct ClockRustServer{
@@ -46,15 +48,24 @@ impl ClockRustServer{
                     thread::spawn(move ||{
                         let send_buffer = &mut buffer[..num_bytes];
                         let received = str::from_utf8(send_buffer).unwrap();
-                        let cmd_rnr = CommandRunner::new(conn);
+                        // let cmd_rnr = CommandConstructor::new(conn, &mut ClockRust::default());
                         info!("Received from client: {}", received);
-                        match cmd_rnr.run_command(received){
-                           Ok(command) => {
-                               info!("Successfully ran: {} ", command);
-
-                           }//todo we need to construct what we're going to return here
-                            Err(e) => error!("FAIL: No command was run: {}", e),
-                        }
+                         match create_command(received){
+                           Ok(box_cmd) => {
+                               // let cmd: dyn Command = *box_cmd;
+                               // info!("Successfully created: {} ", *box_cmd.to_string());
+                               match box_cmd.run_command(){
+                                   Ok(_) => { //TODO write back success
+                                        }
+                                   Err(_) => { //TODO write back failure
+                                        }
+                               }
+                           }
+                            Err(e) => {
+                                error!("FAIL: No command returned: {}", e)
+                                //TODO write back failure
+                            },
+                        };
                         //here we need to store the command in the sqlite table
                         let response_string = format!("Received this: {}", String::from_utf8_lossy(send_buffer));
                         socket_new.send_to(&response_string.as_bytes(), &src_addr).expect("Error sending datagram to remote socket");
