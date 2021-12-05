@@ -28,9 +28,9 @@ impl<'a> ClockIn<'a>{
     }
 }
 
-impl Display for ClockIn{
+impl Display for ClockIn<'_>{
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result{
-        write!(f, "clock-in {}", task)
+        write!(f, "clock-in {}", self.task)
 
     }
 }
@@ -50,9 +50,9 @@ impl<'a> ClockOut<'a>{
     }
 }
 
-impl Display for ClockOut{
+impl Display for ClockOut<'_>{
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "clock-out {}", task)
+        write!(f, "clock-out {}", self.task)
     }
 }
 // impl CommandConstructor {
