@@ -1,11 +1,10 @@
+use std::{str, thread};
 use std::net::UdpSocket;
-use std::{thread,str};
-use color_eyre::{eyre::eyre,Report, Result};
-use tracing::{ info, error };
-use crate::command::{create_command, Command};
 
-use crate::db::ClockRust;
+use color_eyre::{Result};
+use tracing::{error, info};
 
+use crate::command::{create_command};
 
 pub struct ClockRustServer{
     ///port we will listen  on
@@ -68,7 +67,7 @@ impl ClockRustServer{
                         };
                         //here we need to store the command in the sqlite table
                         let response_string = format!("Received this: {}", String::from_utf8_lossy(send_buffer));
-                        socket_new.send_to(&response_string.as_bytes(), &src_addr).expect("Error sending datagram to remote socket");
+                        socket_new.send_to(response_string.as_bytes(), &src_addr).expect("Error sending datagram to remote socket");
 
                     });
                 }

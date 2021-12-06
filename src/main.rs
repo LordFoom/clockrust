@@ -1,23 +1,13 @@
+use std::str::FromStr;
+use color_eyre::Report;
+use tracing::info;
+
+use crate::server::ClockRustServer;
+
 mod server;
 mod config;
 mod command;
 mod db;
-
-
-use std::error::Error;
-use std::str;
-use std::thread;
-use std::net::UdpSocket;
-use color_eyre::Report;
-use tracing::info;
-use tracing_subscriber::EnvFilter;
-use clap::{Arg, App, ArgMatches};
-use crate::server::ClockRustServer;
-
-use std::convert::Infallible;
-use std::net::SocketAddr;
-use std::str::FromStr;
-// use hyper::{Body, Request, Response, Server};
 
 
 ///Configure and start our timetracker

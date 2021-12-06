@@ -2,9 +2,6 @@ use std::fmt::{Display, Formatter};
 
 use color_eyre::{eyre::eyre, Report, Result};
 
-use crate::command::CommandType::ClockIn;
-use crate::db::{ClockRust, ClockRuster};
-
 enum CommandType {
     ClockIn,
     ClockOut,
@@ -63,7 +60,7 @@ pub fn create_command(check_str: &str) -> Result<Command, Report> {
         // let task = split.as_str();
         let parts:Vec<&str> = check_str.split(' ').collect();
         let task = parts[1..].join(" ");
-        if "" == task {
+        if task.is_empty() {
             Err(eyre!("FAIL, usage: clock-in task that can be many words"))
         }else{
             let ci = Command::new(CommandType::ClockIn, task);
@@ -73,7 +70,7 @@ pub fn create_command(check_str: &str) -> Result<Command, Report> {
         //insert into db
         let parts:Vec<&str> = check_str.split(' ').collect();
         let task = parts[1..].join(" ");
-        if "" == task {
+        if  task.is_empty() {
             Err(eyre!("FAIL, usage: clock-out task that can be many words"))
         }else {
             let co = Command::new(CommandType::ClockOut, task);
@@ -114,7 +111,7 @@ mod tests {
 
     #[test]
     fn test_clock_out(){
-        let result = create_command("clock out this is the clock out test");
+        let result = create_command("clock-out this is the clock out test");
         match result{
             Ok(clock_out) => assert_eq!(clock_out.to_string(), "clock-out this is the clock out test"),
             Err(why) => {
