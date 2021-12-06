@@ -1,101 +1,99 @@
-use color_eyre::{eyre::eyre, Report, Result};
-use crate::db::{ClockRust, ClockRuster};
 use std::fmt::{Display, Formatter};
 
-pub trait Command{
-    // fn new(connection_str: &str)->Self;
-    fn run_command(&self)->Result<(), Report>;
-}
-pub struct ClockIn<'a>{
-    task: &'a str
-}
+use color_eyre::{eyre::eyre, Report, Result};
 
-pub struct ClockOut<'a>{
-    task: &'a str
+use crate::command::CommandType::ClockIn;
+use crate::db::{ClockRust, ClockRuster};
+
+enum CommandType {
+    ClockIn,
+    ClockOut,
 }
 
-impl<'a> Command for ClockIn<'a>{
-    fn run_command(&self) -> Result<(), Report> {
-        Ok(())
-    }
-}
-
-impl<'a> ClockIn<'a>{
-    fn new(activity: &str) ->ClockIn{
-        ClockIn{
-            task: activity
-        }
-    }
-}
-
-impl Display for ClockIn<'_>{
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result{
-        write!(f, "clock-in {}", self.task)
-
-    }
-}
-
-impl<'a> Command for ClockOut<'a>{
-
-    fn run_command(&self) -> Result<(), Report> {
-        Ok(())
-    }
-}
-
-impl<'a> ClockOut<'a>{
-    fn new(activity: &str)->ClockOut{
-        ClockOut{
-            task: activity
-        }
-    }
-}
-
-impl Display for ClockOut<'_>{
+impl Display for CommandType {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "clock-out {}", self.task)
-    }
-}
-// impl CommandConstructor {
-
-    pub fn create_command(check_str: &str) ->Result<Box<dyn Command + '_>, Report>{
-
-        //is it one of our commands, if so return a positive result
-        return if check_str.starts_with("clock-in") {
-            //break command into at least 2, possibly 3 parts
-            let cic: Vec<&str> = check_str.split(' ').collect();
-            if cic.len() < 2 || cic.len() > 2 {
-                return Err(eyre!("FAIL, USAGE: clock-in HASH optional_notes"))
-            }
-            //hash[0] will be  "clock-in"
-            let clock_string = cic[1];
-            let notes = if cic.len() == 3 {
-                cic[2]
-            } else {
-                ""
-            };
-            let ci = Box::new(ClockIn::new(clock_string));
-            Ok(ci)
-        } else if check_str.starts_with("clock-out") {
-            //insert into db
-            let cic: Vec<&str> = check_str.split(' ').collect();
-            if cic.len() < 2 || cic.len() > 2 {
-                return Err(eyre!("FAIL, USAGE: clock-out HASH optional_notes"))
-            }
-            Err(eyre!("FAIL: not yet implemented clock-out"))
-        } else {
-            Err(eyre!("FAIL, supported commands: clock-in, clock-out"))
+        match self {
+            CommandType::ClockIn => write!(f, "clock-in"),
+            CommandType::ClockOut => write!(f, "clock-out"),
         }
     }
+}
+
+// pub trait Command{
+//     // fn new(connection_str: &str)->Self;
+//     fn run_command(&self)->Result<(), Report>;
+// }
+pub struct Command {
+    cmd: CommandType,
+    task:  String,
+}
+
+
+impl Command {
+    fn new(cmd: CommandType, task: String) -> Command {
+        Command {
+            cmd,
+            task,
+        }
+    }
+
+    pub fn run_command(&self)-> Result<(), Report>{
+        // match self.cmd{
+        //     Cl
+        // }
+        Ok(())
+    }
+}
+
+impl Display for Command {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} {}", self.cmd, self.task)
+    }
+}
+
+
+pub fn create_command(check_str: &str) -> Result<Command, Report> {
+
+    //is it one of our commands, if so return a positive result
+    return if check_str.starts_with("clock-in") {
+        //break command into at least 2, possibly 3 parts
+        // let mut split = check_str.split(' ');
+        // split.next();
+
+        // let task = split.as_str();
+        let parts:Vec<&str> = check_str.split(' ').collect();
+        let task = parts[1..].join(" ");
+        if "" == task {
+            Err(eyre!("FAIL, usage: clock-in task that can be many words"))
+        }else{
+            let ci = Command::new(CommandType::ClockIn, task);
+            Ok(ci)
+        }
+    } else if check_str.starts_with("clock-out") {
+        //insert into db
+        let parts:Vec<&str> = check_str.split(' ').collect();
+        let task = parts[1..].join(" ");
+        if "" == task {
+            Err(eyre!("FAIL, usage: clock-out task that can be many words"))
+        }else {
+            let co = Command::new(CommandType::ClockOut, task);
+            Ok(co)
+        }
+    } else {
+        Err(eyre!("FAIL, supported commands: clock-in, clock-out"))
+    };
+}
 // }
 
 #[cfg(test)]
-mod tests{
+mod tests {
     use color_eyre::Report;
+
     use super::*;
 
     ///we try to do the run a command that doesn't exist
     #[test]
-    fn test_bad_command(){
+    fn test_bad_command() {
         // let cmd_runner = CommandConstructor::new("./test.db".to_string());
         let result = create_command("badcommand");
         let report = result.err().unwrap();
@@ -103,8 +101,26 @@ mod tests{
     }
 
     #[test]
-    fn test_clock_in(){
-
+    fn test_clock_in() {
+        let result = create_command("clock-in this is a test");
+        match result{
+            Ok(clock_in) => assert_eq!(clock_in.to_string(), "clock-in this is a test"),
+            Err(why) => {
+                println!("We have FAILED: {}", why);
+                assert_eq!(false , true);//let it end
+            }
+        }
     }
 
+    #[test]
+    fn test_clock_out(){
+        let result = create_command("clock out this is the clock out test");
+        match result{
+            Ok(clock_out) => assert_eq!(clock_out.to_string(), "clock-out this is the clock out test"),
+            Err(why) => {
+                println!("We have FAILED: {}", why);
+                assert_eq!(false, true);//let it end
+            }
+        }
+    }
 }

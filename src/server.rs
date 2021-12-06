@@ -51,10 +51,10 @@ impl ClockRustServer{
                         // let cmd_rnr = CommandConstructor::new(conn, &mut ClockRust::default());
                         info!("Received from client: {}", received);
                          match create_command(received){
-                           Ok(box_cmd) => {
+                           Ok(cmd) => {
                                // let cmd: dyn Command = *box_cmd;
                                // info!("Successfully created: {} ", *box_cmd.to_string());
-                               match box_cmd.run_command(){
+                               match cmd.run_command(){
                                    Ok(_) => { //TODO write back success
                                         }
                                    Err(_) => { //TODO write back failure
