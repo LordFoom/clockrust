@@ -61,7 +61,7 @@ pub fn create_command(check_str: &str) -> Result<Command, Report> {
         _ => return Err(eyre!("Fail, available commands: clock-in | clock-out"))
     };
 
-    if(parts.len()!=3){
+    if parts.len()!=3 {
         return Err(eyre!("FAIL, usage command::time::title"))
     }
     let time_str = parts[1];
