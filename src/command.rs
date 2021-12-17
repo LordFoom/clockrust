@@ -27,8 +27,8 @@ pub struct Command {
 
 
 impl Command {
-    fn new(cmd: CommandType, task: String) -> Command {
-        Command {
+    fn new(cmd: CommandType, task: String) -> Self {
+        Self {
             cmd,
             task,
         }
@@ -51,14 +51,29 @@ impl Display for Command {
 
 pub fn create_command(check_str: &str) -> Result<Command, Report> {
 
+    // let task = split.as_str();
+    let parts:Vec<&str> = check_str.split("::").collect();
+    let cmd = match parts[0]   {
+        "clock-in" => CommandType::ClockIn ,
+        "clock-out" =>  CommandType::ClockOut ,
+
+        //unsupported command
+        _ => return Err(eyre!("Fail, available commands: clock-in | clock-out"))
+    };
+
+    if(parts.len()!=3){
+        return Err(eyre!("FAIL, usage command::time::title"))
+    }
+    let time_str = parts[1];
+    let title_str  = parts[2];
+
     //is it one of our commands, if so return a positive result
     return if check_str.starts_with("clock-in") {
         //break command into at least 2, possibly 3 parts
         // let mut split = check_str.split(' ');
         // split.next();
 
-        // let task = split.as_str();
-        let parts:Vec<&str> = check_str.split(' ').collect();
+        ///command string is the first part, relevant time is the second part, task key (title) is the third part
         let task = parts[1..].join(" ");
         if task.is_empty() {
             Err(eyre!("FAIL, usage: clock-in task that can be many words"))
