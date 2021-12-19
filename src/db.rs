@@ -1,20 +1,45 @@
-// use rusqlite::{Connection, params};
+use color_eyre::Report;
+use rusqlite::{Connection, params};
 
-///Using a trait to help with testing....
-pub trait ClockRuster{
-    fn clock_in(self, task_str: &str);
-    fn clock_out(self, task_str: &str);
+use crate::command::Command;
 
+pub struct ClockRuster {
+    connection_string: String,
 }
-#[derive(Default)]
-pub struct ClockRust;
 
-impl ClockRuster for ClockRust{
-    fn clock_in(self, task_str: &str) {
-        todo!()
+impl ClockRuster {
+    pub fn new() -> Self {
+        Self {
+            connection_string: String::from("./.clockrust"),
+        }
     }
 
-    fn clock_out(self, task_str: &str) {
-        todo!()
+    pub fn init(conn_str: &str) -> Self {
+        let connection_string = String::from(conn_str);
+        Self {
+            connection_string
+        }
+    }
+
+    fn ensure_storage_exists(self, conn: Connection) -> Result<(), Report> {
+        //check for table's existence
+        conn.execute("
+            CREATE TABLE clock_rust_tasks(
+                id INTEGER PRIMARY KEY ASC,
+                command: TEXT,
+                task: TEXT,
+                hash: INTEGER,
+                cmd_date: DATETIME
+            )
+        ", [])?;
+        Ok(())
+        //and create it if it does not exist
+    }
+
+    pub fn run_clock_command(self, cmd: Command) -> Result<(), Report> {
+        let conn = Connection::open(&self.connection_string)?;
+        self.ensure_storage_exists(conn)?;
+        Ok(())
     }
 }
+

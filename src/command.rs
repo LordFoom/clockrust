@@ -1,4 +1,5 @@
 use std::fmt::{Display, Formatter};
+use chrono::DateTime;
 
 use color_eyre::{eyre::eyre, Report, Result};
 
@@ -67,6 +68,11 @@ pub fn create_command(check_str: &str) -> Result<Command, Report> {
     let time_str = parts[1];
     let title_str  = parts[2];
 
+    let dtime = DateTime::parse_from_rfc3339(time_str);
+
+
+    //turn the time_str into a time thing
+    //turn the title string...into nothing
     //is it one of our commands, if so return a positive result
     return if check_str.starts_with("clock-in") {
         //break command into at least 2, possibly 3 parts
