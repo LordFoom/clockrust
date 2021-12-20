@@ -2,7 +2,8 @@ use std::fmt::{Display, Formatter};
 use chrono::{DateTime, FixedOffset, ParseResult, Utc};
 
 use color_eyre::{eyre::eyre, Report, Result};
-const COMMAND_EG: &str = "clock-in::2021-10-31T04:10:29.316132167+00:00::'task description'";
+use tracing::{info};
+const COMMAND_EG: &str = "clock-in::2021-10-31T04:10:29.316132167Z::'task description'";
 
 enum CommandType {
     ClockIn,
@@ -68,6 +69,7 @@ pub fn create_command(check_str: &str) -> Result<Command, Report> {
         return Err(eyre!("FAIL, usage command::time::title, eg {}", COMMAND_EG))
     }
     let time_str = parts[1];
+    info!("Here is the  TIME STRING: {} ", time_str);
     let task = parts[2];
     //let's get chronological
     let dtime = match DateTime::parse_from_rfc3339(time_str){
@@ -117,6 +119,7 @@ pub fn create_command(check_str: &str) -> Result<Command, Report> {
 #[cfg(test)]
 mod tests {
     use color_eyre::Report;
+    use crate::config;
 
     use super::*;
 
@@ -131,22 +134,22 @@ mod tests {
     }
 
     #[test]
-    fn test_clock_in() {
-        let result = create_command("clock-in this is a test");
-        match result{
-            Ok(clock_in) => assert_eq!(clock_in.to_string(), "clock-in this is a test"),
+    fn test_create_clock_in() {
+        config::setup(true);
+        match create_command("clock-in::2021-12-20T20:22:29.52Z::this is a test"){
+            Ok(Command{cmd, task, cmd_datetime}) => { assert_eq!(task.to_string(), "this is a test") }
             Err(why) => {
                 println!("We have FAILED: {}", why);
-                assert_eq!(false , true);//let it end
+                assert!(false);//let it end
             }
         }
     }
 
     #[test]
-    fn test_clock_out(){
-        let result = create_command("clock-out this is the clock out test");
+    fn test_create_clock_out(){
+        let result = create_command("clock-out::2021-12-20T20:36:23.44Z::this is the clock out test");
         match result{
-            Ok(clock_out) => assert_eq!(clock_out.to_string(), "clock-out this is the clock out test"),
+            Ok(Command{task, cmd, cmd_datetime}) => assert_eq!(task.to_string(), "this is the clock out test"),
             Err(why) => {
                 println!("We have FAILED: {}", why);
                 assert_eq!(false, true);//let it end
