@@ -1,5 +1,5 @@
 use std::fmt::{Display, Formatter};
-use chrono::{DateTime, ParseResult, Utc};
+use chrono::{DateTime, FixedOffset, ParseResult, Utc};
 
 use color_eyre::{eyre::eyre, Report, Result};
 const COMMAND_EG: &str = "clock-in::2021-10-31T04:10:29.316132167+00:00::'task description'";
@@ -24,15 +24,16 @@ impl Display for CommandType {
 // }
 pub struct Command {
     cmd: CommandType,
-    cmd_datetime: DateTime<Utc>,
+    cmd_datetime: DateTime<FixedOffset>,
     task:  String,
 }
 
 
 impl Command {
-    fn new(cmd: CommandType, task: String) -> Self {
+    fn new(cmd: CommandType, cmd_datetime:DateTime<FixedOffset>, task: String) -> Self {
         Self {
             cmd,
+            cmd_datetime,
             task,
         }
     }
@@ -59,21 +60,22 @@ pub fn create_command(check_str: &str) -> Result<Command, Report> {
     let cmd = match parts[0]   {
         "clock-in" => CommandType::ClockIn ,
         "clock-out" =>  CommandType::ClockOut ,
-
         //unsupported command
-        _ => return Err(eyre!("Fail, available commands: clock-in | clock-out, eg {}", COMMAND_EG))
+        _ => return Err(eyre!("Fail, available commands: clock-in | clock-out, eg {}", COMMAND_EG)),
     };
 
     if parts.len()!=3 {
         return Err(eyre!("FAIL, usage command::time::title, eg {}", COMMAND_EG))
     }
     let time_str = parts[1];
-    let title_str  = parts[2];
+    let task = parts[2];
+    //let's get chronological
     let dtime = match DateTime::parse_from_rfc3339(time_str){
         Ok(dt) => { dt}
-        Err(why) => { return Err(eyre!("FAIL: please supply datetime in rfc3339 format, eg: {}", COMMAND_EG))}
+        Err(why) => { return Err(eyre!("ParseError: {}\n FAIL: please supply datetime in rfc3339 format, eg: { }", why, COMMAND_EG))}
     };
-    
+
+    Ok(Command::new(cmd, dtime, String::from(task)))
     
 
     // } else {
@@ -124,7 +126,8 @@ mod tests {
         // let cmd_runner = CommandConstructor::new("./test.db".to_string());
         let result = create_command("badcommand");
         let report = result.err().unwrap();
-        assert_eq!(report.to_string(), "FAIL, supported commands: clock-in, clock-out".to_string());
+        println!("{}", report);
+        assert!(report.to_string().starts_with("Fail, available commands: clock-in | clock-out, eg"));
     }
 
     #[test]
