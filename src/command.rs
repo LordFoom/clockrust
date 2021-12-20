@@ -1,7 +1,8 @@
 use std::fmt::{Display, Formatter};
-use chrono::DateTime;
+use chrono::{DateTime, ParseResult, Utc};
 
 use color_eyre::{eyre::eyre, Report, Result};
+const COMMAND_EG: &str = "clock-in::2021-10-31T04:10:29.316132167+00:00::'task description'";
 
 enum CommandType {
     ClockIn,
@@ -23,6 +24,7 @@ impl Display for CommandType {
 // }
 pub struct Command {
     cmd: CommandType,
+    cmd_datetime: DateTime<Utc>,
     task:  String,
 }
 
@@ -59,47 +61,54 @@ pub fn create_command(check_str: &str) -> Result<Command, Report> {
         "clock-out" =>  CommandType::ClockOut ,
 
         //unsupported command
-        _ => return Err(eyre!("Fail, available commands: clock-in | clock-out"))
+        _ => return Err(eyre!("Fail, available commands: clock-in | clock-out, eg {}", COMMAND_EG))
     };
 
     if parts.len()!=3 {
-        return Err(eyre!("FAIL, usage command::time::title"))
+        return Err(eyre!("FAIL, usage command::time::title, eg {}", COMMAND_EG))
     }
     let time_str = parts[1];
     let title_str  = parts[2];
+    let dtime = match DateTime::parse_from_rfc3339(time_str){
+        Ok(dt) => { dt}
+        Err(why) => { return Err(eyre!("FAIL: please supply datetime in rfc3339 format, eg: {}", COMMAND_EG))}
+    };
+    
+    
 
-    let dtime = DateTime::parse_from_rfc3339(time_str);
-
+    // } else {
+    //     Err(eyre!("FAIL, supported commands: clock-in, clock-out"))
+    // };
 
     //turn the time_str into a time thing
     //turn the title string...into nothing
     //is it one of our commands, if so return a positive result
-    return if check_str.starts_with("clock-in") {
-        //break command into at least 2, possibly 3 parts
-        // let mut split = check_str.split(' ');
-        // split.next();
-
-        ///command string is the first part, relevant time is the second part, task key (title) is the third part
-        let task = parts[1..].join(" ");
-        if task.is_empty() {
-            Err(eyre!("FAIL, usage: clock-in task that can be many words"))
-        }else{
-            let ci = Command::new(CommandType::ClockIn, task);
-            Ok(ci)
-        }
-    } else if check_str.starts_with("clock-out") {
-        //insert into db
-        let parts:Vec<&str> = check_str.split(' ').collect();
-        let task = parts[1..].join(" ");
-        if  task.is_empty() {
-            Err(eyre!("FAIL, usage: clock-out task that can be many words"))
-        }else {
-            let co = Command::new(CommandType::ClockOut, task);
-            Ok(co)
-        }
-    } else {
-        Err(eyre!("FAIL, supported commands: clock-in, clock-out"))
-    };
+    // return if check_str.starts_with("clock-in") {
+    //     //break command into at least 2, possibly 3 parts
+    //     // let mut split = check_str.split(' ');
+    //     // split.next();
+    //
+    //     ///command string is the first part, relevant time is the second part, task key (title) is the third part
+    //     let task = parts[1..].join(" ");
+    //     if task.is_empty() {
+    //         Err(eyre!("FAIL, usage: clock-in task that can be many words"))
+    //     }else{
+    //         let ci = Command::new(CommandType::ClockIn, task);
+    //         Ok(ci)
+    //     }
+    // } else if check_str.starts_with("clock-out") {
+    //     //insert into db
+    //     let parts:Vec<&str> = check_str.split(' ').collect();
+    //     let task = parts[1..].join(" ");
+    //     if  task.is_empty() {
+    //         Err(eyre!("FAIL, usage: clock-out task that can be many words"))
+    //     }else {
+    //         let co = Command::new(CommandType::ClockOut, task);
+    //         Ok(co)
+    //     }
+    // } else {
+    //     Err(eyre!("FAIL, supported commands: clock-in, clock-out"))
+    // };
 }
 // }
 
