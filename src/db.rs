@@ -64,17 +64,23 @@ mod tests{
         let db_file = "./clock_rust_test";
         let cr = ClockRuster::init(db_file);
         if let Ok(conn) = Connection::open(cr.connection_string.clone()){
-                match cr.ensure_storage_exists(&conn){
-                    Ok(_) => {info!("Successfully ran ensure_storage_exists")}
-                    Err(why) => {panic!("Could not ensure_storage_exists: {}", why)}
-                }
-                let fp = std::path::Path::new(db_file);
-                assert!(std::path::Path::exists(fp));
+            match cr.ensure_storage_exists(&conn){
+                Ok(_) => {info!("Successfully ran ensure_storage_exists")}
+                Err(why) => {panic!("Could not ensure_storage_exists: {}", why)}
+            }
+            let fp = std::path::Path::new(db_file);
+            assert!(std::path::Path::exists(fp));
             //SELECT name FROM sqlite_master WHERE type='table' AND name='{table_name}';
-            let tablecount = conn.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='clock_rust_tasks'", []).unwrap();
-            assert_eq!(tablecount, 1)
+            let mut stmt = conn.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='clock_rust_tasks'").unwrap();
+            let mut rows = stmt.query([]).unwrap();
+            let mut table_count = if let Some(row) = rows.next().unwrap(){
+                 row.get_unwrap(0)
+            }else{ 0 };
+            //delete the file
+            std::fs::remove_file("./clock_rust_test").unwrap();
+            assert_eq!(table_count, 1)
 
-            }else{
+        }else{
             panic!("Failed to get connection");
         }
 
