@@ -46,13 +46,6 @@ impl Command {
         }
     }
 
-    pub fn run_command(&self)-> Result<(), Report>{
-        // match self.cmd{
-        //     Cl
-        // }
-        Ok(())
-    }
-
 }
 
 impl Display for Command {

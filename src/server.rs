@@ -1,10 +1,12 @@
 use std::{str, thread};
 use std::net::UdpSocket;
+use std::sync::Arc;
 
 use color_eyre::{Result};
 use tracing::{error, info};
 
 use crate::command::{create_command};
+use crate::db::ClockRuster;
 
 pub struct ClockRustServer{
     ///port we will listen  on
@@ -35,16 +37,20 @@ impl ClockRustServer{
     ///
     /// Will return "SUCCESS <command HASH>" on success
     /// Will return "FAILURE msg" on failure, which may or may not contain the hash depending on the issude
-    pub fn run(&mut self)->Result<()> {
+    pub fn run(self)->Result<()> {
         let server_str = format!("127.0.0.1:{}", self.port);
         let socket = UdpSocket::bind(server_str).expect("Unable to bind to port");
         let mut buffer = [0; 1024];
+        // let conn = Arc::new(self.connection_string.clone());
+        //scoped threads from crossbeam? cos this move is killing me
+        // let conn = self.connection_string.clone();
         loop{
             let socket_new = socket.try_clone().expect("Unable to clone socket");
-            let conn = self.connection_string.clone();
+            let tmp = self.connection_string.clone();
             match socket_new.recv_from(&mut buffer){
                 Ok((num_bytes, src_addr))=>{
                     thread::spawn(move ||{
+                        let cr = ClockRuster::init(&tmp);
                         let send_buffer = &mut buffer[..num_bytes];
                         let received = str::from_utf8(send_buffer).unwrap();
                         // let cmd_rnr = CommandConstructor::new(conn, &mut ClockRust::default());
@@ -53,7 +59,7 @@ impl ClockRustServer{
                            Ok(cmd) => {
                                // let cmd: dyn Command = *box_cmd;
                                // info!("Successfully created: {} ", *box_cmd.to_string());
-                               match cmd.run_command(){
+                               match cr.run_clock_command(cmd){
                                    Ok(_) => { //TODO write back success
                                         }
                                    Err(_) => { //TODO write back failure
