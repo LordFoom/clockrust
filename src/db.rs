@@ -1,6 +1,9 @@
-use color_eyre::Report;
+use std::collections::hash_map::DefaultHasher;
+use std::hash::{Hash, Hasher};
+use color_eyre::{Report, eyre::eyre };
 use rusqlite::{Connection, params};
 use tracing::info;
+
 
 use crate::command::Command;
 
@@ -40,7 +43,17 @@ impl ClockRuster {
     pub fn run_clock_command(self, cmd: Command) -> Result<(), Report> {
         //todo get some better pattern matching going on
         let conn = Connection::open(&self.connection_string)?;
-        self.ensure_storage_exists(&conn)?;
+        match self.ensure_storage_exists(&conn){
+            Ok(_) => {
+                let mut hasher = DefaultHasher::new();
+                cmd.hash(&mut hasher);
+                let updated = conn.execute(r"INSERT into clock_rust_tasks (command, task, hash, cmd_date)
+                                    VALUES (?, ?, ?, ?);",
+                             params![ cmd.command.to_string(), cmd.task, hasher.finish(), cmd.cmd_datetime  ])?;
+                info!("Number of rows inserted {}", updated);
+            }
+            Err(y) => { return Err(eyre!("Failed to run command: {}", y))}
+        }
         // con
         Ok(())
     }
@@ -58,17 +71,21 @@ mod tests{
 
     use super::*;
 
+    const TEST_DB_STRING: &str = "./clock_rust_test";
+
     #[test]
     fn test_create_table(){
-        config::setup(true);
-        let db_file = "./clock_rust_test";
-        let cr = ClockRuster::init(db_file);
+        if let Err(e) = config::setup(true) {
+           panic!("Unable to setup");
+        }
+        // let db_file = "./clock_rust_test";
+        let cr = ClockRuster::init(TEST_DB_STRING);
         if let Ok(conn) = Connection::open(cr.connection_string.clone()){
             match cr.ensure_storage_exists(&conn){
                 Ok(_) => {info!("Successfully ran ensure_storage_exists")}
                 Err(why) => {panic!("Could not ensure_storage_exists: {}", why)}
             }
-            let fp = std::path::Path::new(db_file);
+            let fp = std::path::Path::new(TEST_DB_STRING);
             assert!(std::path::Path::exists(fp));
             //SELECT name FROM sqlite_master WHERE type='table' AND name='{table_name}';
             let mut stmt = conn.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='clock_rust_tasks'").unwrap();
@@ -85,5 +102,10 @@ mod tests{
         }
 
     }
+
+    // #[test]
+    // fn text_run_clock_in_command(){
+    //     ClockRuster::init("/")
+    // }
 }
 
