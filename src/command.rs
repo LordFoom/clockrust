@@ -53,9 +53,6 @@ impl Command {
         Ok(())
     }
 
-    fn hash(&self){
-
-    }
 }
 
 impl Display for Command {
@@ -111,9 +108,11 @@ mod tests {
 
     #[test]
     fn test_create_clock_in() {
-        config::setup(true);
+        if let Err(e) = config::setup(true){
+            panic!("Unable to setup sqlite db");
+        }
         match create_command("clock-in::2021-12-20T20:22:29.52Z::this is a test"){
-            Ok(Command{ command: cmd, task, cmd_datetime}) => { assert_eq!(task.to_string(), "this is a test") }
+            Ok(Command{ command: cmd, task, cmd_datetime:_}) => { assert_eq!(task.to_string(), "this is a test") }
             Err(why) => {
                 println!("We have FAILED: {}", why);
                 assert!(false);//let it end

@@ -58,9 +58,6 @@ impl ClockRuster {
         Ok(())
     }
 
-    pub fn connection(&self)->Result<Connection, Report>{
-        Ok(Connection::open(&self.connection_string.clone())?)
-    }
 }
 
 #[cfg(test)]
@@ -90,7 +87,7 @@ mod tests{
             //SELECT name FROM sqlite_master WHERE type='table' AND name='{table_name}';
             let mut stmt = conn.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='clock_rust_tasks'").unwrap();
             let mut rows = stmt.query([]).unwrap();
-            let mut table_count = if let Some(row) = rows.next().unwrap(){
+            let table_count = if let Some(row) = rows.next().unwrap(){
                  row.get_unwrap(0)
             }else{ 0 };
             //delete the file
