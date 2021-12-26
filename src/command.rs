@@ -1,11 +1,13 @@
 use std::fmt::{Display, Formatter};
 use chrono::{DateTime, FixedOffset, ParseResult, Utc};
+use std::hash::{ Hash,Hasher };
 
 use color_eyre::{eyre::eyre, Report, Result};
 use tracing::{info};
 const COMMAND_EG: &str = "clock-in::2021-10-31T04:10:29.316132167Z::'task description'";
 
-enum CommandType {
+///Available commands
+pub enum CommandType {
     ClockIn,
     ClockOut,
 }
@@ -19,21 +21,26 @@ impl Display for CommandType {
     }
 }
 
-// pub trait Command{
-//     // fn new(connection_str: &str)->Self;
-//     fn run_command(&self)->Result<(), Report>;
-// }
+impl Hash for CommandType{
+
+    fn hash<H: Hasher>(&self, state: &mut H){
+        self.to_string().hash(state);
+    }
+}
+
+///Struct representing commands to track time
+#[derive(Hash)]
 pub struct Command {
-    cmd: CommandType,
-    cmd_datetime: DateTime<FixedOffset>,
-    task:  String,
+    pub command: CommandType,
+    pub cmd_datetime: DateTime<FixedOffset>,
+    pub task:  String,
 }
 
 
 impl Command {
     fn new(cmd: CommandType, cmd_datetime:DateTime<FixedOffset>, task: String) -> Self {
         Self {
-            cmd,
+            command: cmd,
             cmd_datetime,
             task,
         }
@@ -45,11 +52,15 @@ impl Command {
         // }
         Ok(())
     }
+
+    fn hash(&self){
+
+    }
 }
 
 impl Display for Command {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{} {}", self.cmd, self.task)
+        write!(f, "{} {}", self.command, self.task)
     }
 }
 
@@ -102,7 +113,7 @@ mod tests {
     fn test_create_clock_in() {
         config::setup(true);
         match create_command("clock-in::2021-12-20T20:22:29.52Z::this is a test"){
-            Ok(Command{cmd, task, cmd_datetime}) => { assert_eq!(task.to_string(), "this is a test") }
+            Ok(Command{ command: cmd, task, cmd_datetime}) => { assert_eq!(task.to_string(), "this is a test") }
             Err(why) => {
                 println!("We have FAILED: {}", why);
                 assert!(false);//let it end
@@ -114,7 +125,7 @@ mod tests {
     fn test_create_clock_out(){
         let result = create_command("clock-out::2021-12-20T20:36:23.44Z::this is the clock out test");
         match result{
-            Ok(Command{task, cmd, cmd_datetime}) => assert_eq!(task.to_string(), "this is the clock out test"),
+            Ok(Command{task, command: cmd, cmd_datetime}) => assert_eq!(task.to_string(), "this is the clock out test"),
             Err(why) => {
                 println!("We have FAILED: {}", why);
                 assert_eq!(false, true);//let it end
