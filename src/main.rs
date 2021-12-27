@@ -21,7 +21,7 @@ fn main()->Result<(), Report> {
 
     let connection_string = args.value_of("file").unwrap_or("~/.clockrust.db");
     //need to put this in its own file and then have a parser maybe
-    info!("Listening....");
+    info!(task_file = connection_string, "Listening...");
     let mut crs = ClockRustServer::new(port, connection_string.to_string() );
     crs.run()?;
 
