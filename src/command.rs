@@ -101,9 +101,9 @@ mod tests {
 
     #[test]
     fn test_create_clock_in() {
-        if let Err(e) = config::setup(true){
-            panic!("Unable to setup sqlite db");
-        }
+        // if let Err(e) = config::setup(true){
+        //     panic!("Unable to setup sqlite db");
+        // }
         match create_command("clock-in::2021-12-20T20:22:29.52Z::this is a test"){
             Ok(Command{ command: cmd, task, cmd_datetime:_}) => { assert_eq!(task.to_string(), "this is a test") }
             Err(why) => {

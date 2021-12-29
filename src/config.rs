@@ -2,6 +2,7 @@ use clap::{App, ArgMatches};
 use color_eyre::Report;
 use tracing_appender::rolling::{RollingFileAppender, Rotation};
 use tracing_subscriber;
+use tracing::info;
 
 pub fn setup(verbose: bool) ->Result<(), Report>{
     if std::env::var("RUST_LIB_BACKTRACE").is_err(){
@@ -20,6 +21,7 @@ pub fn setup(verbose: bool) ->Result<(), Report>{
         .with_writer(nb_file_appender)
         .init();
 
+    info!("Logging initialized successfully.");
     // tracing_subscriber::fmt::fmt()
     //     .with_env_filter(EnvFilter::from_default_env())
     //     .init();

@@ -72,9 +72,9 @@ mod tests{
 
     #[test]
     fn test_create_table(){
-        if let Err(e) = config::setup(true) {
-           panic!("Unable to setup");
-        }
+        // if let Err(e) = config::setup(true) {
+        //    panic!("Unable to setup");
+        // }
         // let db_file = "./clock_rust_test";
         let cr = ClockRuster::init(TEST_DB_STRING);
         if let Ok(conn) = Connection::open(cr.connection_string.clone()){
