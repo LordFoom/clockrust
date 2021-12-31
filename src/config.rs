@@ -4,17 +4,23 @@ use tracing_appender::rolling::{RollingFileAppender, Rotation};
 use tracing_subscriber;
 use tracing::info;
 
-pub fn setup(verbose: bool) ->Result<(), Report>{
+pub fn setup(verbose: bool, log_file_option:Option<String>) ->Result<(), Report>{
     if std::env::var("RUST_LIB_BACKTRACE").is_err(){
         std::env::set_var("RUST_LIB_BACKTRACE", "1")
     }
+    //if no name, default
+    let log_file = if let Some(name) = log_file_option{
+        name
+    }else{
+        String::from("clockrust.log")
+    };
     color_eyre::install()?;
 
     if verbose {
         std::env::set_var("RUST_LOG","info")
     }
 
-    let file_appender = RollingFileAppender::new(Rotation::NEVER, ".", "clockrust.log");
+    let file_appender = RollingFileAppender::new(Rotation::NEVER, ".", log_file);
     let (nb_file_appender, _guard) = tracing_appender::non_blocking(file_appender);
 
     tracing_subscriber::fmt()
