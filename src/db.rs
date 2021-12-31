@@ -91,7 +91,7 @@ mod tests{
                  row.get_unwrap(0)
             }else{ 0 };
             //delete the file
-            std::fs::remove_file("./clock_rust_test").unwrap();
+            std::fs::remove_file("./clock_rust_test").expect("could not delete test sqlite db file");
             assert_eq!(table_count, 1)
 
         }else{
