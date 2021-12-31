@@ -1,8 +1,10 @@
+use std::sync::Once;
 use clap::{App, ArgMatches};
 use color_eyre::Report;
 use tracing_appender::rolling::{RollingFileAppender, Rotation};
 use tracing_subscriber;
-use tracing::info;
+use tracing::{info, Level};
+use tracing_subscriber::FmtSubscriber;
 
 pub fn setup(verbose: bool, log_file_option:Option<String>) ->Result<(), Report>{
     if std::env::var("RUST_LIB_BACKTRACE").is_err(){
@@ -34,6 +36,17 @@ pub fn setup(verbose: bool, log_file_option:Option<String>) ->Result<(), Report>
     Ok(())
 }
 
+static INIT: Once = Once::new();
+
+pub fn setup_test_logging(){
+    INIT.call_once(||{
+        let subs = FmtSubscriber::builder()
+            .with_max_level(Level::TRACE)
+            .finish();
+
+        tracing::subscriber::set_global_default(subs).expect("setting stdout logger failed");
+    });
+}
 ///Get our cli arguments and return them in a nice data structure
 /// Current args:
 /// verbose: log stuff

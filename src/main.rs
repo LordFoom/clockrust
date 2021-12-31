@@ -14,7 +14,7 @@ mod db;
 fn main()->Result<(), Report> {
     let args  = config::parse_args();
     let verbose = args.is_present("verbose");
-    config::setup(verbose)?;
+    config::setup(verbose, None)?;//default for now, to be put into the parse
     let port = u16::from_str( args.value_of("port")
         .unwrap_or("4420"))
         .unwrap();//want it to complain for bad u16 values

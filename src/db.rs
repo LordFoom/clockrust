@@ -62,20 +62,20 @@ impl ClockRuster {
 
 #[cfg(test)]
 mod tests{
+    use std::sync::Once;
     use color_eyre::Report;
-    use tracing::error;
+    use tracing::{error, Level};
+    use tracing_subscriber::FmtSubscriber;
     use crate::config;
 
     use super::*;
 
     const TEST_DB_STRING: &str = "./clock_rust_test";
 
+
     #[test]
     fn test_create_table(){
-        // if let Err(e) = config::setup(true) {
-        //    panic!("Unable to setup");
-        // }
-        // let db_file = "./clock_rust_test";
+        config::setup_test_logging();
         let cr = ClockRuster::init(TEST_DB_STRING);
         if let Ok(conn) = Connection::open(cr.connection_string.clone()){
             match cr.ensure_storage_exists(&conn){

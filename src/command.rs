@@ -93,6 +93,7 @@ mod tests {
     #[test]
     fn test_bad_command() {
         // let cmd_runner = CommandConstructor::new("./test.db".to_string());
+        config::setup_test_logging();
         let result = create_command("badcommand");
         let report = result.err().unwrap();
         println!("{}", report);
@@ -101,9 +102,7 @@ mod tests {
 
     #[test]
     fn test_create_clock_in() {
-        // if let Err(e) = config::setup(true){
-        //     panic!("Unable to setup sqlite db");
-        // }
+        config::setup_test_logging();
         match create_command("clock-in::2021-12-20T20:22:29.52Z::this is a test"){
             Ok(Command{ command: cmd, task, cmd_datetime:_}) => { assert_eq!(task.to_string(), "this is a test") }
             Err(why) => {
@@ -115,6 +114,7 @@ mod tests {
 
     #[test]
     fn test_create_clock_out(){
+        config::setup_test_logging();
         let result = create_command("clock-out::2021-12-20T20:36:23.44Z::this is the clock out test");
         match result{
             Ok(Command{task, command: cmd, cmd_datetime}) => assert_eq!(task.to_string(), "this is the clock out test"),
