@@ -7,6 +7,7 @@ use tracing::{info};
 const COMMAND_EG: &str = "clock-in::2021-10-31T04:10:29.316132167Z::'task description'";
 
 ///Available commands
+#[derive(Clone)]
 pub enum CommandType {
     ClockIn,
     ClockOut,
